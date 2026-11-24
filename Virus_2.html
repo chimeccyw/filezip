@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Virus</title>
+<style>
+:root{--bg:#000;--fg:#2bff6a;--dim:#126b31;--red:#ff3b3b;--amber:#ffb000;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#000}
+body{
+  font-family:'Courier New',ui-monospace,monospace;
+  color:var(--fg);
+  min-height:100%;
+  padding:18px 14px 30px;
+  font-size:14px;
+  line-height:1.5;
+  overflow-x:hidden;
+}
+#log{white-space:pre-wrap;word-break:break-word}
+.line{opacity:0;animation:fade .05s forwards}
+@keyframes fade{to{opacity:1}}
+.red{color:var(--red)}
+.amber{color:var(--amber)}
+.dim{color:var(--dim)}
+#bar{display:inline-block;width:220px;max-width:60vw;height:10px;border:1px solid var(--fg);vertical-align:middle;margin:0 8px;position:relative}
+#bar i{position:absolute;left:0;top:0;bottom:0;background:var(--fg);width:0}
+#cursor{display:inline-block;width:8px;height:14px;background:var(--fg);vertical-align:middle;animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+.shake{animation:shk .25s infinite}
+@keyframes shk{
+  0%{transform:translate(0,0)}
+  25%{transform:translate(-2px,1px)}
+  50%{transform:translate(2px,-1px)}
+  75%{transform:translate(-1px,-2px)}
+  100%{transform:translate(1px,2px)}
+}
+#glitch{position:fixed;inset:0;background:repeating-linear-gradient(0deg,rgba(43,255,106,.04) 0 2px,transparent 2px 4px);pointer-events:none;mix-blend-mode:screen}
+#flash{position:fixed;inset:0;background:var(--red);opacity:0;pointer-events:none;transition:opacity .08s}
+#final{position:fixed;inset:0;background:#000;color:var(--red);display:none;align-items:center;justify-content:center;text-align:center;font-size:28px;font-weight:bold;letter-spacing:2px;padding:20px}
+@media (prefers-reduced-motion:reduce){.shake{animation:none}}
+</style>
+</head>
+<body>
+<div id="glitch"></div>
+<div id="flash"></div>
+<div id="log"></div>
+<div id="final"></div>
+<script>
+(function(){
+  var log=document.getElementById("log");
+  var body=document.body;
+  var flash=document.getElementById("flash");
+  var finalScreen=document.getElementById("final");
+  var queue=[];
+  var running=false;
+
+  function line(html,cls){
+    var d=document.createElement("div");
+    d.className="line"+(cls?(" "+cls):"");
+    d.innerHTML=html;
+    log.appendChild(d);
+    window.scrollTo(0,document.body.scrollHeight);
+  }
+
+  function wait(ms){return new Promise(function(r){setTimeout(r,ms)})}
+
+  function bar(label,ms,cls){
+    return new Promise(function(resolve){
+      var d=document.createElement("div");
+      d.className="line"+(cls?(" "+cls):"");
+      d.innerHTML=label+' <span id="bar"><i></i></span> <span class="pct">0%</span>';
+      log.appendChild(d);
+      var fill=d.querySelector("i"),pct=d.querySelector(".pct");
+      var t0=Date.now();
+      var iv=setInterval(function(){
+        var p=Math.min(100,Math.round((Date.now()-t0)/ms*100));
+        fill.style.width=p+"%";
+        pct.textContent=p+"%";
+        window.scrollTo(0,document.body.scrollHeight);
+        if(p>=100){clearInterval(iv);resolve()}
+      },60);
+    });
+  }
+
+  var files=[
+    "C:\\\\Users\\\\Documents\\\\taxes_2024.xlsx",
+    "C:\\\\Users\\\\Pictures\\\\vacation_032.jpg",
+    "C:\\\\System32\\\\drivers\\\\etc\\\\hosts",
+    "C:\\\\Users\\\\Desktop\\\\resume_final_v3.docx",
+    "/etc/passwd",
+    "/home/user/.ssh/id_rsa",
+    "C:\\\\ProgramData\\\\config.sys",
+    "C:\\\\Users\\\\AppData\\\\Local\\\\cache.db",
+    "/var/log/system.log",
+    "C:\\\\Windows\\\\boot.ini"
+  ];
+
+  async function run(){
+    line('<span class="dim">[boot] initializing payload...</span>');
+    await wait(400);
+    line('<span class="dim">[boot] kernel handshake ok</span>');
+    await wait(300);
+    line("ESTABLISHING CONNECTION...");
+    await bar("UPLINK",1200);
+    line('<span class="amber">CONNECTION ESTABLISHED — HOST COMPROMISED</span>');
+    await wait(500);
+    body.classList.add("shake");
+    for(var i=0;i<files.length;i++){
+      await wait(160+Math.random()*120);
+      line('<span class="red">[ENCRYPTING]</span> '+files[i]);
+    }
+    await wait(300);
+    await bar("ENCRYPTING FILESYSTEM",2200,"red");
+    line('<span class="red">ACCESS GRANTED: CAMERA</span>');
+    await wait(250);
+    line('<span class="red">ACCESS GRANTED: MICROPHONE</span>');
+    await wait(250);
+    line('<span class="red">ACCESS GRANTED: CONTACTS</span>');
+    await wait(250);
+    line('<span class="red">ACCESS GRANTED: LOCATION</span>');
+    await wait(500);
+    flash.style.opacity="0.5";
+    await wait(80);
+    flash.style.opacity="0";
+    await bar("EXFILTRATING DATA",2500,"red");
+    flash.style.opacity="0.6";
+    await wait(100);
+    flash.style.opacity="0";
+    await wait(300);
+    line('<span class="red">CORE SYSTEM FILES DELETED</span>');
+    await wait(400);
+    line('<span class="red">BACKUP VOLUMES WIPED</span>');
+    await wait(400);
+    line('<span class="red">RECOVERY PARTITION DESTROYED</span>');
+    await wait(700);
+    body.classList.remove("shake");
+    flash.style.transition="opacity 1.2s";
+    flash.style.opacity="1";
+    await wait(1300);
+    finalScreen.style.display="flex";
+    finalScreen.textContent="file.zip";
+  }
+  run();
+})();
+</script>
+</body>
+</html>
